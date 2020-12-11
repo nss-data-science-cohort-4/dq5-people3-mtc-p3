@@ -1,8 +1,8 @@
 ```{r}
 library(tidyverse)
 library(tidycensus)
+library(ggplot2)
 #census_api_key("9c748167b1b8fd8094aa84efecd8bb21fb84c4f4", install = TRUE)
-
 ```
 
 ## Data Question 5: People3
@@ -28,12 +28,57 @@ To use now, restart R or run `readRenviron("~/.Renviron")`
 > readRenviron("~/.Renviron")
 
 ```{r}
-var_19_acs1 <- load_variables(year=2019, dataset="acs1", cache=TRUE)
-View(var_19_acs1)
-
+var_19_acs5 <- load_variables(year=2019, dataset="acs5/profile", cache=TRUE)
+View(var_19_acs5)
 
 #get_acs(geography="county", state ="TN",table="B01001")
 ```
+
+
+
+```{r}
+acs_vars <- c(ed1 = "DP02_0059", ed2 = "DP02_0060", ed3 = "DP02_0061", ed4 = "DP02_0062", ed5 = "DP02_0063", 
+              ed6 = "DP02_0064", ed7 = "DP02_0065", ed8 = "DP02_0066", ed9 = "DP02_0067", ed10 = "DP02_0068", 
+              ed1p = "DP02_0059P", ed2p = "DP02_0060P", ed3p = "DP02_0061P", ed4p = "DP02_0062P", ed5p = "DP02_0063P", 
+              ed6p = "DP02_0064P", ed7p = "DP02_0065P", ed8p = "DP02_0066P", ed9p = "DP02_0067P", ed10p = "DP02_0068P",
+              
+              vet1 = "DP02_0069", vet2 = "DP02_0070", vet1p = "DP02_0069P", vet2p = "DP02_0070P", 
+              
+              dis1 = "DP02_0071", dis2 = "DP02_0072", dis3 = "DP02_0073", dis4 = "DP02_0074", dis5 = "DP02_0075", 
+              dis6 = "DP02_0076", dis7 = "DP02_0077", dis8 = "DP02_0078", dis1p = "DP02_0071P", dis2p = "DP02_0072P",
+              dis3p = "DP02_0073P", dis4p = "DP02_0074P", dis5p = "DP02_0075P", dis6p = "DP02_0076P", dis7P = "DP02_0077P",
+              dis8p = "DP02_0078P", 
+              
+              sex1 = "DP05_0025", sex2 = "DP05_0026", sex3 = "DP05_0027", sex4 = "DP05_0028", sex5 = "DP05_0029", 
+              sex6 = "DP05_0030", sex7 = "DP05_0031", sex8 = "DP05_0032", 
+              sex1p = "DP05_0025P", sex2p = "DP05_0026P", sex3p = "DP05_0027P", sex4p = "DP05_0028P", sex5p = "DP05_0029P", 
+              sex6p = "DP05_0030P", sex7p = "DP05_0031P", sex8p = "DP05_0032P", 
+              
+              ralone1 = "DP05_0063", ralone2 = "DP05_0064", ralone3 = "DP05_0065", ralone4 = "DP05_0066", 
+              ralone5 = "DP05_0067", ralone6 = "DP05_0068", ralone7 = "DP05_0069", 
+              ralone1p = "DP05_0063P", ralone2p = "DP05_0064P", ralone3p = "DP05_0065P", ralone4p = "DP05_0066P", 
+              ralone5p = "DP05_0067P", ralone6p = "DP05_0068P", ralone7p = "DP05_0069P", 
+              
+              rhisp1 = "DP05_0070", rhisp2 = "DP05_0071", rhisp3 = "DP05_0072", rhisp4 = "DP05_0073", 
+              rhisp5 = "DP05_0074", rhisp6 = "DP05_0075", rhisp7 = "DP05_0076",
+              rhisp1p = "DP05_0070P", rhisp2p = "DP05_0071P", rhisp3p = "DP05_0072P", rhisp4p = "DP05_0073P", 
+              rhisp5p = "DP05_0074", rhisp6p = "DP05_0075P", rhisp7p = "DP05_0076P")
+```
+
+
+
+```{r}
+acs5_19 <- get_acs(survey = "acs5", year = 2019, 
+                  geography = "metropolitan statistical area/micropolitan statistical area", 
+                  variables = acs_vars, cache = TRUE)
+
+acs5_19_filter <- acs5_19 %>%
+  filter(GEOID == '34980')
+
+view(acs5_19_filter)
+```
+
+
 
 
 
