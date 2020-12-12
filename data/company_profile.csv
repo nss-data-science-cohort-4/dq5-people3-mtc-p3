@@ -1,0 +1,20 @@
+Company Name,Category,Statistic,Enter_Nbr_Employees,Statistic_Code
+My Company,Summary/Age,Total Employees,45,race_pop
+My Company,Summary/Age,Age 25 and Over,42,ed_pop_25o
+My Company,Education - Highest Attained,High School Grad,2,ed_hs_grad
+My Company,Education - Highest Attained,Some College,5,ed_some_coll
+My Company,Education - Highest Attained,Associate Degree,3,ed_assoc_deg
+My Company,Education - Highest Attained,Bachelor's Degree,30,ed_bach_deg
+My Company,Education - Highest Attained,Graduate Degree,5,ed_grad_deg
+My Company,Veteran Status,Veterans,8,vet_veteran
+My Company,Disability,Employees w/Disability,3,dis_disabil
+My Company,Sex,Male,24,sex_18o_male
+My Company,Sex,Female,21,sex_18o_fem
+My Company,Race,White,26,race_white
+My Company,Race,Black or African American,14,race_black_aa
+My Company,Race,American Indian or Alaska Native,0,race_amerin_an
+My Company,Race,Asian,4,race_asian
+My Company,Race,Hawaiian or Pacific Islander,0,race_hawaii_pi
+My Company,Race,Other,1,race_other
+My Company,Hispanic,Hispanic or Latino,9,hisp_any
+My Company,Hispanic,Not Hispanic or Latino,36,hisp_not_hisp
