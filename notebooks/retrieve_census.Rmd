@@ -696,9 +696,17 @@ view(acs5_2019_filter)
 
 ```
 
+A few last cleanup items
+```{r cleanup}
+acs5_2019_filter <- acs5_2019_filter %>% 
+  rename('geoid' = GEOID, 'location' = NAME) %>% 
+  relocate(estimate, .before = pct_of_pop)
+```
+
+
 Render combined data as CSV
 ```{r}
-write.csv(acs5_2019_filter, '../data/acs5_2019_filter.csv')
+write.csv(acs5_2019_filter, '../data/acs5_2019_filter.csv', row.names = FALSE)
 
 # temp
 # acs5_2019_filter <- read.csv('../data/acs5_2019_filter.csv')

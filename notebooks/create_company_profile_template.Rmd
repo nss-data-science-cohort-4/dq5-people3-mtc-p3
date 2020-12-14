@@ -56,14 +56,14 @@ statistic <- c(
   "Total Employees",
   "Employees",
   "Employees",
-  "Employees Age 18 to 24",
-  "Employees Age 18 to 24",
-  "Employees Age 25 to 39",
-  "Employees Age 25 to 39",
-  "Employess Age 40 to 54",
-  "Employess Age 40 to 54",
-  "Employees Age 55 to 64",
-  "Employees Age 55 to 64",
+  "Age 18 to 24",
+  "Age 18 to 24",
+  "Age 25 to 39",
+  "Age 25 to 39",
+  "Age 40 to 54",
+  "Age 40 to 54",
+  "Age 55 to 64",
+  "Age 55 to 64",
   "High School Grad",
   "High School Grad",
   "Some College",
@@ -175,6 +175,6 @@ profile <- profile %>%
 profile <- profile %>% 
   rename('Company Name' = companyname, 'Statistic Group' = statistic_group, 'Statistic' = statistic, 'Sex' = sex, 'Nbr Employees' = employees)
 
-write.csv(profile, '../data/SampleCompanyProfile.csv')
+write.csv(profile, '../data/SampleCompanyProfile.csv', row.names = FALSE)
 ```
 
