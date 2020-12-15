@@ -1,0 +1,713 @@
+---
+title: "retrieve_census"
+author: "mmckenzie"
+date: "12/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidycensus)
+library(tidyverse)
+library(dplyr)
+#library(censusapi)
+```
+
+View the variables in the ACS5 catalog
+The profile switch included below gives the DP02 - DP05 tables
+```{r acs5_variables}
+acs5_19_var <- load_variables(2019, dataset="acs5/profile", cache = TRUE)
+#view(acs5_19_var)
+
+acs5_19_var_dtl <- load_variables(2019, dataset="acs5", cache = TRUE)
+#view(acs5_19_var_dtl)
+
+```
+
+Just the variables we want
+So we can retrieve the catalog documentation
+Save the documentation to a csv so we can manipulate it in Excel
+```{r filter_catalog}
+var_filter <-c("DP02_0059",
+               "DP02_0060",
+               "DP02_0061",
+               "DP02_0062",
+               "DP02_0063",
+               "DP02_0064",
+               "DP02_0065",
+               "DP02_0066",
+               "DP02_0067",
+               "DP02_0068",
+               "DP02_0069",
+               "DP02_0070",
+               "DP02_0071",
+               "DP02_0072",
+               "DP02_0073",
+               "DP02_0074",
+               "DP02_0075",
+               "DP02_0076",
+               "DP02_0077",
+               "DP02_0078",
+               "DP05_0025",
+               "DP05_0026",
+               "DP05_0027",
+               "DP05_0028",
+               "DP05_0029",
+               "DP05_0030",
+               "DP05_0031",
+               "DP05_0032",
+               "DP05_0063",
+               "DP05_0064",
+               "DP05_0065",
+               "DP05_0066",
+               "DP05_0067",
+               "DP05_0068",
+               "DP05_0069",
+               "DP05_0070",
+               "DP05_0071",
+               "DP05_0072",
+               "DP05_0073",
+               "DP05_0074",
+               "DP05_0075",
+               "DP05_0076")
+
+var_names <- acs5_19_var %>% 
+  select(name, label, concept) %>% 
+  filter(name %in% var_filter)
+
+#view(var_names)
+
+write.csv(var_names, 'var_names.csv' )
+```
+
+An additional set of variables from the detail tables
+```{r filter_catalog_addl}
+
+var_filter_addl <-c("B01001_001",
+                    "B01001_002",
+                    "B01001_003",
+                    "B01001_004",
+                    "B01001_005",
+                    "B01001_006",
+                    "B01001_007",
+                    "B01001_008",
+                    "B01001_009",
+                    "B01001_010",
+                    "B01001_011",
+                    "B01001_012",
+                    "B01001_013",
+                    "B01001_014",
+                    "B01001_015",
+                    "B01001_016",
+                    "B01001_017",
+                    "B01001_018",
+                    "B01001_019",
+                    "B01001_020",
+                    "B01001_021",
+                    "B01001_022",
+                    "B01001_023",
+                    "B01001_024",
+                    "B01001_025",
+                    "B01001_026",
+                    "B01001_027",
+                    "B01001_028",
+                    "B01001_029",
+                    "B01001_030",
+                    "B01001_031",
+                    "B01001_032",
+                    "B01001_033",
+                    "B01001_034",
+                    "B01001_035",
+                    "B01001_036",
+                    "B01001_037",
+                    "B01001_038",
+                    "B01001_039",
+                    "B01001_040",
+                    "B01001_041",
+                    "B01001_042",
+                    "B01001_043",
+                    "B01001_044",
+                    "B01001_045",
+                    "B01001_046",
+                    "B01001_047",
+                    "B01001_048",
+                    "B01001_049",
+                    "B15002_001",
+                    "B15002_002",
+                    "B15002_003",
+                    "B15002_004",
+                    "B15002_005",
+                    "B15002_006",
+                    "B15002_007",
+                    "B15002_008",
+                    "B15002_009",
+                    "B15002_010",
+                    "B15002_011",
+                    "B15002_012",
+                    "B15002_013",
+                    "B15002_014",
+                    "B15002_015",
+                    "B15002_016",
+                    "B15002_017",
+                    "B15002_018",
+                    "B15002_019",
+                    "B15002_020",
+                    "B15002_021",
+                    "B15002_022",
+                    "B15002_023",
+                    "B15002_024",
+                    "B15002_025",
+                    "B15002_026",
+                    "B15002_027",
+                    "B15002_028",
+                    "B15002_029",
+                    "B15002_030",
+                    "B15002_031",
+                    "B15002_032",
+                    "B15002_033",
+                    "B15002_034",
+                    "B15002_035"
+                    )
+
+var_names_addl <- acs5_19_var_dtl %>% 
+  select(name, label, concept) %>% 
+  filter(name %in% var_filter_addl)
+
+#view(var_names_addl)
+
+write.csv(var_names_addl, 'var_names_addl.csv' )
+```
+
+Just the variables we want to retrieve
+With friendly names
+```{r select_vars}
+acs_vars <- c(ed_pop_25o = "DP02_0059",
+              ed_lt_9g = "DP02_0060",
+              ed_9g_to_12g = "DP02_0061",
+              ed_hs_grad = "DP02_0062",
+              ed_some_coll = "DP02_0063",
+              ed_assoc_deg = "DP02_0064",
+              ed_bach_deg = "DP02_0065",
+              ed_grad_deg = "DP02_0066",
+              ed_hs_higher = "DP02_0067",
+              ed_bach_higher = "DP02_0068",
+              vet_pop_18o = "DP02_0069",
+              vet_veteran = "DP02_0070",
+              dis_pop_ni = "DP02_0071",
+              dis_disabil = "DP02_0072",
+              dis_pop_u18 = "DP02_0073",
+              dis_u18_disabil = "DP02_0074",
+              dis_pop_18_to_64 = "DP02_0075",
+              dis_18_to_64_disabil = "DP02_0076",
+              dis_pop_65o = "DP02_0077",
+              dis_65o_disabil = "DP02_0078",
+              sex_pop_18o = "DP05_0025",
+              sex_18o_male = "DP05_0026",
+              sex_18o_fem = "DP05_0027",
+              sex_18o_ratio = "DP05_0028",
+              sex_pop_65o = "DP05_0029",
+              sex_65o_male = "DP05_0030",
+              sex_65o_fem = "DP05_0031",
+              sex_65o_ratio = "DP05_0032",
+              race_pop = "DP05_0063",
+              race_white = "DP05_0064",
+              race_black_aa = "DP05_0065",
+              race_amerin_an = "DP05_0066",
+              race_asian = "DP05_0067",
+              race_hawaii_pi = "DP05_0068",
+              race_other = "DP05_0069",
+              hisp_pop = "DP05_0070",
+              hisp_any = "DP05_0071",
+              hisp_mexican = "DP05_0072",
+              hisp_pr = "DP05_0073",
+              hisp_cuban = "DP05_0074",
+              hisp_other = "DP05_0075",
+              hisp_not_hisp = "DP05_0076",
+              ed_pop_25o_p = "DP02_0059P",
+              ed_lt_9g_p = "DP02_0060P",
+              ed_9g_to_12g_p = "DP02_0061P",
+              ed_hs_grad_p = "DP02_0062P",
+              ed_some_coll_p = "DP02_0063P",
+              ed_assoc_deg_p = "DP02_0064P",
+              ed_bach_deg_p = "DP02_0065P",
+              ed_grad_deg_p = "DP02_0066P",
+              ed_hs_higher_p = "DP02_0067P",
+              ed_bach_higher_p = "DP02_0068P",
+              vet_pop_18o_p = "DP02_0069P",
+              vet_veteran_p = "DP02_0070P",
+              dis_pop_ni_p = "DP02_0071P",
+              dis_disabil_p = "DP02_0072P",
+              dis_pop_u18_p = "DP02_0073P",
+              dis_u18_disabil_p = "DP02_0074P",
+              dis_pop_18_to_64_p = "DP02_0075P",
+              dis_18_to_64_disabil_p = "DP02_0076P",
+              dis_pop_65o_p = "DP02_0077P",
+              dis_65o_disabil_p = "DP02_0078P",
+              sex_pop_18o_p = "DP05_0025P",
+              sex_18o_male_p = "DP05_0026P",
+              sex_18o_fem_p = "DP05_0027P",
+              sex_18o_ratio_p = "DP05_0028P",
+              sex_pop_65o_p = "DP05_0029P",
+              sex_65o_male_p = "DP05_0030P",
+              sex_65o_fem_p = "DP05_0031P",
+              sex_65o_ratio_p = "DP05_0032P",
+              race_pop_p = "DP05_0063P",
+              race_white_p = "DP05_0064P",
+              race_black_aa_p = "DP05_0065P",
+              race_amerin_an_p = "DP05_0066P",
+              race_asian_p = "DP05_0067P",
+              race_hawaii_pi_p = "DP05_0068P",
+              race_other_p = "DP05_0069P",
+              hisp_pop_p = "DP05_0070P",
+              hisp_any_p = "DP05_0071P",
+              hisp_mexican_p = "DP05_0072P",
+              hisp_pr_p = "DP05_0073P",
+              hisp_cuban_p = "DP05_0074P",
+              hisp_other_p = "DP05_0075P",
+              hisp_not_hisp_p = "DP05_0076P"
+)
+acs_vars_dtl <- c(sex_pop_dtl = "B01001_001",
+              sex_male = "B01001_002",
+              sex_male_u5 = "B01001_003",
+              sex_male_5to9 = "B01001_004",
+              sex_male_10to14 = "B01001_005",
+              sex_male_15to17 = "B01001_006",
+              sex_male_18to19 = "B01001_007",
+              sex_male_20 = "B01001_008",
+              sex_male_21 = "B01001_009",
+              sex_male_22to24 = "B01001_010",
+              sex_male_25to29 = "B01001_011",
+              sex_male_30to34 = "B01001_012",
+              sex_male_35to39 = "B01001_013",
+              sex_male_40to44 = "B01001_014",
+              sex_male_45to49 = "B01001_015",
+              sex_male_50to54 = "B01001_016",
+              sex_male_55to59 = "B01001_017",
+              sex_male_60to61 = "B01001_018",
+              sex_male_62to64 = "B01001_019",
+              sex_male_65to66 = "B01001_020",
+              sex_male_67to69 = "B01001_021",
+              sex_male_70to74 = "B01001_022",
+              sex_male_75to79 = "B01001_023",
+              sex_male_80to84 = "B01001_024",
+              sex_male_85o = "B01001_025",
+              sex_fem = "B01001_026",
+              sex_fem_u5 = "B01001_027",
+              sex_fem_5to9 = "B01001_028",
+              sex_fem_10to14 = "B01001_029",
+              sex_fem_15to17 = "B01001_030",
+              sex_fem_18to19 = "B01001_031",
+              sex_fem_20 = "B01001_032",
+              sex_fem_21 = "B01001_033",
+              sex_fem_22to24 = "B01001_034",
+              sex_fem_25to29 = "B01001_035",
+              sex_fem_30to34 = "B01001_036",
+              sex_fem_35to39 = "B01001_037",
+              sex_fem_40to44 = "B01001_038",
+              sex_fem_45to49 = "B01001_039",
+              sex_fem_50to54 = "B01001_040",
+              sex_fem_55to59 = "B01001_041",
+              sex_fem_60to61 = "B01001_042",
+              sex_fem_62to64 = "B01001_043",
+              sex_fem_65to66 = "B01001_044",
+              sex_fem_67to69 = "B01001_045",
+              sex_fem_70to74 = "B01001_046",
+              sex_fem_75to79 = "B01001_047",
+              sex_fem_80to84 = "B01001_048",
+              sex_fem_85o = "B01001_049",
+              ed_pop_dtl = "B15002_001",
+              ed_male = "B15002_002",
+              ed_male_nosch = "B15002_003",
+              ed_male_to4g = "B15002_004",
+              ed_male_5gto6g = "B15002_005",
+              ed_male_7gto8g = "B15002_006",
+              ed_male_9g = "B15002_007",
+              ed_male_10g = "B15002_008",
+              ed_male_11g = "B15002_009",
+              ed_male_12g = "B15002_010",
+              ed_male_hsgrad = "B15002_011",
+              ed_male_coll_lt1y = "B15002_012",
+              ed_male_coll_1yo = "B15002_013",
+              ed_male_assoc = "B15002_014",
+              ed_male_bach = "B15002_015",
+              ed_male_mast = "B15002_016",
+              ed_male_prof = "B15002_017",
+              ed_male_doc = "B15002_018",
+              ed_fem = "B15002_019",
+              ed_fem_nosch = "B15002_020",
+              ed_fem_to4g = "B15002_021",
+              ed_fem_5gto6g = "B15002_022",
+              ed_fem_7gto8g = "B15002_023",
+              ed_fem_9g = "B15002_024",
+              ed_fem_10g = "B15002_025",
+              ed_fem_11g = "B15002_026",
+              ed_fem_12g = "B15002_027",
+              ed_fem_hsgrad = "B15002_028",
+              ed_fem_coll_lt1y = "B15002_029",
+              ed_fem_coll_1yo = "B15002_030",
+              ed_fem_assoc = "B15002_031",
+              ed_fem_bach = "B15002_032",
+              ed_fem_mast = "B15002_033",
+              ed_fem_prof = "B15002_034",
+              ed_fem_doc = "B15002_035"
+              )
+#view(acs_vars)
+#view(acs_vars_dtl)
+
+```
+
+Retrieve our MSA data for the variables we want
+With friendly names
+Filter it down to the Nashville MSA
+Save it to a csv that our app can use
+
+Pull in selected ACS data profile variables for Nashville & Memphis MSA 
+```{r retrieve_filter}
+
+#Save Nashville & Memphis MSA codes to variable
+nash_memph <- c('34980','32820')
+
+acs5_2019_dp_nash_memph <-get_acs(
+  survey = "acs5",
+  year = 2019,
+  geography = "metropolitan statistical area/micropolitan statistical area",
+  variables = acs_vars,
+  cache = TRUE ) %>%
+  filter(GEOID %in% nash_memph)
+
+#view(acs5_2019_dp_nash_memph)
+
+```
+
+Pull in selected ACS data profile variables for Tennessee
+```{r}
+acs5_2019_dp_tn <-get_acs(
+  survey = "acs5",
+  year = 2019,
+  geography = "state",
+  state="TN",
+  variables = acs_vars,
+  cache = TRUE
+)
+
+#view(acs5_2019_dp_tn)
+```
+
+Pull in detailed breakdowns of age, sex, education for Tennessee
+```{r}
+acs5_19_dtl_tn <-get_acs(
+  survey = "acs5",
+  year = 2019,
+  geography = "state",
+  state="TN",
+  variables = acs_vars_dtl,
+  cache = TRUE
+)
+
+#View(acs5_19_dtl_tn)
+```
+
+Pull in detailed breakdowns of age and sex for Nashville & Memphis
+```{r}
+acs5_19_dtl_nash_memph <-get_acs(
+  survey = "acs5",
+  year = 2019,
+  geography = "metropolitan statistical area/micropolitan statistical area",
+  variables = acs_vars_dtl,
+  cache = TRUE) %>%
+  filter(GEOID %in% nash_memph)
+
+#View(acs5_19_dtl_nash_memph)
+
+```
+
+Combine all individual dataframes
+```{r}
+acs5_2019 <- bind_rows(acs5_2019_dp_nash_memph, acs5_2019_dp_tn, acs5_19_dtl_tn, acs5_19_dtl_nash_memph)
+
+#view(acs5_2019)
+```
+
+Reconfigure our dataset for use in the app
+Step 1 - filter down to final variable set
+
+```{r final_variable_filter}
+var_final <- c(
+  "sex_pop_dtl",
+  "ed_pop_dtl",
+  "vet_pop_18o",
+  "vet_veteran",
+  "dis_18_to_64_disabil",
+  "race_pop",
+  "race_white",
+  "race_black_aa",
+  "race_amerin_an",
+  "race_asian",
+  "race_hawaii_pi",
+  "race_other",
+  "hisp_pop",
+  "hisp_any",
+  "hisp_not_hisp",
+  "sex_male",
+  "sex_male_18to19",
+  "sex_male_20",
+  "sex_male_21",
+  "sex_male_22to24",
+  "sex_male_25to29",
+  "sex_male_30to34",
+  "sex_male_35to39",
+  "sex_male_40to44",
+  "sex_male_45to49",
+  "sex_male_50to54",
+  "sex_male_55to59",
+  "sex_male_60to61",
+  "sex_male_62to64",
+  "sex_fem",
+  "sex_fem_18to19",
+  "sex_fem_20",
+  "sex_fem_21",
+  "sex_fem_22to24",
+  "sex_fem_25to29",
+  "sex_fem_30to34",
+  "sex_fem_35to39",
+  "sex_fem_40to44",
+  "sex_fem_45to49",
+  "sex_fem_50to54",
+  "sex_fem_55to59",
+  "sex_fem_60to61",
+  "sex_fem_62to64",
+  "ed_male",
+  "ed_male_hsgrad",
+  "ed_male_coll_lt1y",
+  "ed_male_coll_1yo",
+  "ed_male_assoc",
+  "ed_male_bach",
+  "ed_male_mast",
+  "ed_male_prof",
+  "ed_male_doc",
+  "ed_fem",
+  "ed_fem_hsgrad",
+  "ed_fem_coll_lt1y",
+  "ed_fem_coll_1yo",
+  "ed_fem_assoc",
+  "ed_fem_bach",
+  "ed_fem_mast",
+  "ed_fem_prof",
+  "ed_fem_doc"
+)
+
+acs5_2019_filter <- acs5_2019 %>% 
+  filter(variable %in% var_final)
+#view(acs5_2019_filter)
+```
+
+
+add some summary and statistical columns
+drop the moe column
+```{r add_columns}
+
+acs5_2019_filter <- acs5_2019_filter %>% 
+  mutate(sex = "All",
+         age_group = "All"
+         )
+
+acs5_2019_filter <- select(acs5_2019_filter, -moe)
+
+#view(acs5_2019_filter)
+```
+
+
+populate the pop_group column
+```{r pop_group}
+acs5_2019_filter <- acs5_2019_filter %>% 
+  mutate(sex = ifelse(str_detect(variable, '_male'),
+                      "Male",
+                      ifelse(str_detect(variable, '_fem'),
+                             "Female",
+                             sex)
+                      )
+         )
+acs5_2019_filter <- acs5_2019_filter %>% 
+  mutate(
+    pop_group = case_when(
+      str_detect(variable, 'dis_') ~ 'Working Age',
+      str_detect(variable, 'race_') ~ 'Total Pop',
+      str_detect(variable, 'sex_male_') ~ 'Working Age',
+      str_detect(variable, 'sex_fem_') ~ 'Working Age',
+      str_detect(variable, 'ed_') ~ 'Age 25+',
+      str_detect(variable, 'vet_') ~ 'Age 18+',
+      str_detect(variable, 'hisp_') ~ 'Total Pop',
+      variable %in% c('sex_pop_dtl', 'sex_male', 'sex_fem') ~ 'Total Pop'
+    )
+  )
+
+
+```
+
+add a subtotal that we will need
+```{r working_age_subtotal}
+
+acs5_2019_working_age <- acs5_2019_filter %>% 
+  filter(pop_group == 'Working Age' & str_detect(variable, 'sex_')) %>% 
+  group_by(GEOID, NAME, age_group, pop_group) %>% 
+  summarize('estimate' = sum(estimate)) %>% 
+  relocate(estimate, .before = age_group) %>% 
+  mutate(variable = 'sex_working_age_pop', .after = NAME) %>% 
+  mutate(sex = 'All', .before = age_group)
+
+#view(acs5_2019_working_age)
+
+acs5_2019_filter <- bind_rows(acs5_2019_filter, acs5_2019_working_age)
+
+```
+
+populate statistic_group and age_group
+```{r statistic_group}
+acs5_2019_filter <- acs5_2019_filter %>% 
+  mutate(
+    statistic_group = case_when(
+      str_detect(variable, 'vet_') ~ 'Veteran Status',
+      str_detect(variable, 'dis_') ~ 'Disability Status',
+      str_detect(variable, 'race_') ~ 'Race',
+      str_detect(variable, 'hisp_') ~ 'Hispanic Identity',
+      str_detect(variable, 'sex_') ~ 'Sex and Age',
+      str_detect(variable, 'ed_') ~ 'Education'
+    )
+  )
+
+acs5_2019_filter<-acs5_2019_filter %>% 
+  relocate(statistic_group, .after = estimate)
+
+acs5_2019_filter<-acs5_2019_filter %>% 
+  mutate(
+    age_group = case_when(
+      statistic_group == 'Sex and Age' & str_detect(variable, '_18') ~ 'Gen Z',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_20') ~ 'Gen Z',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_21') ~ 'Gen Z',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_22') ~ 'Gen Z',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_25') ~ 'Millennial',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_30') ~ 'Millennial',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_35') ~ 'Millennial',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_40') ~ 'Gen X',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_45') ~ 'Gen X',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_50') ~ 'Gen X',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_55') ~ 'Baby Boom',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_60') ~ 'Baby Boom',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_62') ~ 'Baby Boom',
+      TRUE ~ 'All'
+    )
+  )
+```
+
+summarize some variables by age_group to simplify
+```{r summarize_agegroups}
+
+age_group_vars <- acs5_2019_filter %>% 
+  filter(statistic_group == 'Sex and Age' & age_group != 'All') %>% 
+  group_by(GEOID, NAME, statistic_group, sex, age_group, pop_group) %>% 
+  summarize('variable' = first(variable), 'estimate' = sum(estimate)) %>% 
+  relocate(estimate, .before = statistic_group) 
+ 
+age_group_vars <- age_group_vars %>% 
+  mutate(variable = 
+    case_when(
+      age_group == 'Baby Boom' & sex == 'Male' ~ 'sex_male_55to64',
+      age_group == 'Baby Boom' & sex == 'Female' ~ 'sex_fem_55to64',
+      age_group == 'Gen X' & sex == 'Male' ~ 'sex_male_40to54',
+      age_group == 'Gen X' & sex == 'Female' ~ 'sex_fem_40to54',
+      age_group == 'Millennial' & sex == 'Male' ~ 'sex_male_25to39',
+      age_group == 'Millennial' & sex == 'Female' ~ 'sex_fem_25to39',
+      age_group == 'Gen Z' & sex == 'Male' ~ 'sex_male_18to24',
+      age_group == 'Gen Z' & sex == 'Female' ~ 'sex_fem_18to24'
+    ) 
+  ) %>% 
+  relocate(variable, .before = estimate)
+
+#write.csv(age_group_vars, '../check1.csv')
+#write.csv(acs5_2019_filter, '../check2.csv')
+
+acs5_2019_filter <- acs5_2019_filter %>% 
+  filter(age_group =='All')
+
+acs5_2019_filter <- bind_rows(acs5_2019_filter, age_group_vars)
+
+```
+
+```{r statistic_group}
+acs5_2019_filter<-acs5_2019_filter %>% 
+  mutate(
+    statistic = case_when(
+      variable == 'dis_18_to_64_disabil' ~ 'Has Disability',
+      statistic_group == 'Education' & str_detect(variable, '_hsgrad') ~ 'High School Grad',
+      statistic_group == 'Education' & str_detect(variable, '_coll') ~ 'Some College',
+      statistic_group == 'Education' & str_detect(variable, '_assoc') ~ 'Associate Degree',
+      statistic_group == 'Education' & str_detect(variable, '_bach') ~ 'Bachelor Degree',
+      statistic_group == 'Education' & str_detect(variable, '_mast') ~ 'Master Degree',
+      statistic_group == 'Education' & str_detect(variable, '_prof') ~ 'Professional Degree',
+      statistic_group == 'Education' & str_detect(variable, '_doc') ~ 'Doctoral Degree',
+      statistic_group == 'Education' & variable %in% c('ed_pop_dtl', 'ed_male', 'ed_fem') ~ 'Population 25+',
+      variable == 'hisp_pop' ~ 'Total Population',
+      variable == 'hisp_any' ~ 'Hispanic',
+      variable == 'hisp_not_hisp' ~ 'Not Hispanic',
+      variable == 'race_pop' ~ 'Total Population',
+      variable == 'race_white' ~ 'White',
+      variable == 'race_black_aa' ~ 'Black/African American',
+      variable == 'race_amerin_an' ~ 'American Indian/Alaska Native',
+      variable == 'race_asian' ~ 'Asian',
+      variable == 'race_hawaii_pi' ~ 'Hawaiian/Pacific Islander',
+      variable == 'race_other' ~ 'Other',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_18') ~ 'Age 18 to 24',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_25') ~ 'Age 25 to 39',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_40') ~ 'Age 40 to 54',
+      statistic_group == 'Sex and Age' & str_detect(variable, '_55') ~ 'Age 55 to 64',
+      variable %in% c('sex_pop_dtl', 'sex_male', 'sex_fem') ~ 'Total Population',
+      variable == 'vet_pop_18o' ~ 'Population 18+',
+      variable == 'vet_veteran' ~ 'Veterans',
+      variable == 'sex_working_age_pop' ~ 'Population 18 to 64'
+    )
+  ) %>% 
+  relocate(statistic, .after = statistic_group)
+
+# view(acs5_2019_filter)
+
+```
+
+
+
+Gather our population denominators
+Add to our dataset
+Calculate percents
+```{r denominators}
+denominators <- acs5_2019_filter %>%
+  distinct(GEOID, pop_group, variable, estimate) %>%
+  arrange(pop_group, GEOID) %>%
+  filter(variable %in% c('vet_pop_18o', 'ed_pop_dtl', 'race_pop', 'sex_working_age_pop'))
+  
+denominators <- rename(denominators, pop_denom = estimate)
+
+# view(denominators)
+
+acs5_2019_filter <- left_join(acs5_2019_filter, select(denominators, c(GEOID, pop_group, pop_denom )), by= c('GEOID' = 'GEOID', 'pop_group' = 'pop_group'))
+
+acs5_2019_filter <- acs5_2019_filter %>% 
+  mutate(pct_of_pop = round(estimate / pop_denom * 100, digits = 2))
+
+view(acs5_2019_filter)
+
+```
+
+A few last cleanup items
+```{r cleanup}
+acs5_2019_filter <- acs5_2019_filter %>% 
+  rename('geoid' = GEOID, 'location' = NAME) %>% 
+  relocate(estimate, .before = pct_of_pop)
+```
+
+
+Render combined data as CSV
+```{r}
+write.csv(acs5_2019_filter, '../data/acs5_2019_filter.csv', row.names = FALSE)
+
+# temp
+# acs5_2019_filter <- read.csv('../data/acs5_2019_filter.csv')
+```
