@@ -1,50 +1,29 @@
 
 
 shinyUI(
-    dashboardPage(skin = "yellow",
+    dashboardPage(
         
         # Application title
-        dashboardHeader(title = "Not Penguins! <CENSUS SOMETHING SOMETHING>"),
-        
+        dashboardHeader
+        (title = tags$a(href='https://people3.co',
+                        tags$img(src='https://people3.co/wp-content/uploads/2020/06/People3-Logo-300.png', 
+                                 height='50',width='200'))
+        ),
         # Sidebar with a slider input for number of bins
         dashboardSidebar(
-            selectInput('msa', 
-                        'Select an MSA:', 
-                        choices = ralone_choices, 
-                        selected = NULL, #NASHVILLE MSA???
-                        multiple = TRUE), 
+            checkboxGroupInput('location', 
+                               'Select Locations:', 
+                               choices = location_choices, 
+                               selected = NULL
+                               ), 
             
-            #checkboxInput('age', 
-            #             'Age 25 Year and Older:',
-            #             choices = age_choices,
-            #             ),
-            
-            radioButtons('sex',
-                         'Male of Female:',
-                         choices = sex_choices,
+            radioButtons('plot_choices', 
+                               'Select a Category:', 
+                               choices = plot_choices, 
             ),
+         
             
-            checkboxGroupInput('racealone', 
-                        'Select a Race:', 
-                        choices = ralone_choices, 
-                        ),
-            
-            radioButtons('hisp',
-                         'Hispanic or Latino Identity:',
-                         choices = hisp_choices,
-                         ),
-            
-            selectInput('ed', 
-                        'Select a Level of Education:', 
-                        choices = ed_choices, 
-                        selected = NULL), 
-            
-            #checkboxInput('vet', 
-            #             'Veteran Status:',
-            #             choices = vet_choices,
-            #             ),
-            
-            fileInput("file", "Upload a file:"),
+            fileInput("file", "Upload Your Company Profile:"),
             
             actionButton('join',
                          'Join Uploaded File to Data', 
@@ -53,16 +32,15 @@ shinyUI(
             
         ),
         
-        # Show a plot of the generated distribution
-        dashboardBody(
-            fluidRow(    
+     
+        dashboardBody(people3_customTheme,
                 column(width = 8, 
-                       box(width = NULL)
-                ),
-                column(width = 4, 
-                       box(width = NULL)
-                )
-            )
-        )
+                       box(width = NULL),
+                       plotOutput('mainplot')
+                       )
+            
+                
+                      )
+        
     )   
 )
