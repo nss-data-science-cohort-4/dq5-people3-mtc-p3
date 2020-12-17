@@ -21,6 +21,18 @@ companydata <- read.csv('../data/SampleCompanyProfile.csv')
 
 ```
 
+tweak the census data
+```{r}
+censusdata <- censusdata %>% 
+  mutate(
+    location = case_when(
+      location == 'Memphis, TN-MS-AR Metro Area' ~ 'Gr. Memphis Area',
+      location == 'Nashville-Davidson--Murfreesboro--Franklin, TN Metro Area' ~ 'Gr. Nashville Area',
+      TRUE ~ location
+    )
+  )
+```
+
 stage the company data for binding
 ```{r company_staging}
 
@@ -83,11 +95,14 @@ censusdata <- censusdata %>%
 
 censusdata <- bind_rows(censusdata, companydata)
 
+write.csv(censusdata, '../data/censusdata.csv')
+
 ```
 
 
 temp scratchpad
 ```{r temp}
+
 
 # censusdata <- censusdata %>% 
 #   arrange(geoid, statistic_group, pop_group)
