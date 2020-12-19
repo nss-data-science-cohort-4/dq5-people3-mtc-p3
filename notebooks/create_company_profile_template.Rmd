@@ -1,0 +1,180 @@
+---
+title: "co_profile_template"
+author: "mmckenzie"
+date: "12/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+```
+
+create a csv for the company profile template
+```{r}
+
+statistic_group <- c(
+  "Sex and Age",
+  "Sex and Age",
+  "Sex and Age",
+  "Sex and Age",
+  "Sex and Age",
+  "Sex and Age",
+  "Sex and Age",
+  "Sex and Age",
+  "Sex and Age",
+  "Sex and Age",
+  "Sex and Age",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Education",
+  "Race",
+  "Race",
+  "Race",
+  "Race",
+  "Race",
+  "Race",
+  "Hispanic Identity",
+  "Hispanic Identity",
+  "Disability Status",
+  "Veteran Status"
+)
+
+statistic <- c(
+  "Total Employees",
+  "Employees",
+  "Employees",
+  "Age 18 to 24",
+  "Age 18 to 24",
+  "Age 25 to 39",
+  "Age 25 to 39",
+  "Age 40 to 54",
+  "Age 40 to 54",
+  "Age 55 to 64",
+  "Age 55 to 64",
+  "High School Grad",
+  "High School Grad",
+  "Some College",
+  "Some College",
+  "Associate Degree",
+  "Associate Degree",
+  "Bachelor Degree",
+  "Bachelor Degree",
+  "Master Degree",
+  "Master Degree",
+  "Professional Degree",
+  "Professional Degree",
+  "Doctoral Degree",
+  "Doctoral Degree",
+  "American Indian/Alaska Native",
+  "Asian",
+  "Black/African American",
+  "Hawaiian/Pacific Islander",
+  "Other",
+  "White",
+  "Hispanic",
+  "Not Hispanic",
+  "Has Disability",
+  "Veterans"
+)
+
+sex <- c(
+  "All",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "Male",
+  "Female",
+  "All",
+  "All",
+  "All",
+  "All",
+  "All",
+  "All",
+  "All",
+  "All",
+  "All",
+  "All"
+)
+
+employees <- c(
+  100,
+  48,
+  52,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  6,
+  8,
+  8,
+  10,
+  10,
+  12,
+  16,
+  18,
+  4,
+  2,
+  2,
+  1,
+  2,
+  1,
+  1,
+  7,
+  17,
+  0,
+  7,
+  68,
+  9,
+  91,
+  5,
+  7
+)
+
+profile <- data.frame(statistic_group, statistic, sex, employees)
+
+profile <- profile %>% 
+  mutate('companyname' = 'Sample Company') %>% 
+  relocate(companyname, .before = statistic_group)
+
+profile <- profile %>% 
+  rename('Company Name' = companyname, 'Statistic Group' = statistic_group, 'Statistic' = statistic, 'Sex' = sex, 'Nbr Employees' = employees)
+
+write.csv(profile, '../data/SampleCompanyProfile.csv', row.names = FALSE)
+```
+

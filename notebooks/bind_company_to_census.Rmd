@@ -1,0 +1,104 @@
+---
+title: "add_profile_to_dataset"
+author: "mmckenzie"
+date: "12/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(stringr)
+
+```
+
+read in our two csv files
+```{r read_data}
+
+censusdata <- read.csv('../data/acs5_2019_filter.csv')
+companydata <- read.csv('../data/SampleCompanyProfile.csv')
+
+```
+
+stage the company data for binding
+```{r company_staging}
+
+companydata <- companydata %>% 
+  rename('location' = Company.Name, 'statistic_group' = Statistic.Group, 'statistic' = Statistic, 'sex' = Sex, 'estimate' = Nbr.Employees)
+  
+companydata <- companydata %>% 
+  mutate('geoid' = 9999999, .before = location) %>% 
+  mutate('variable' = 'None', .before = statistic_group) %>% 
+  mutate(
+    'age_group' = case_when(
+      statistic == 'Age 18 to 24' ~ 'Gen Z',
+      statistic == 'Age 25 to 39' ~ 'Millennial',
+      statistic == 'Age 40 to 54' ~ 'Gen X',
+      statistic == 'Age 55 to 64' ~ 'Baby Boom',
+      TRUE ~ 'All'
+      ), .after = sex
+    ) %>% 
+  mutate(
+    'pop_group' = case_when(
+      statistic_group == 'Veteran Status' ~ 'Age 18+',
+      statistic_group == 'Education' ~ 'Age 25+',
+      statistic_group == 'Hispanic Identity' ~ 'Total Pop',
+      statistic_group == 'Race' ~ 'Total Pop',
+      statistic_group == 'Disability Status' ~ 'Working Age',
+      statistic_group == 'Sex and Age' & statistic %in% c('Total Employees', 'Employees') ~ 'Total Pop',
+      statistic_group == 'Sex and Age' & !statistic %in% c('Total Employees', 'Employees') ~ 'Working Age',
+      TRUE ~ 'XXX'
+    )
+  )
+
+companydata <- companydata %>%
+  mutate(
+    statistic = case_when(
+      statistic_group == 'Sex and Age' & statistic %in% c('Total Employees', 'Employees') ~ 'Total Population',
+      TRUE ~ statistic
+    )
+  )
+  
+pop_denom <-companydata %>% 
+  filter(statistic == 'Total Population' & sex == 'All') %>% 
+  select(variable, estimate) %>% 
+  rename('pop_denom' = estimate)
+
+companydata <- left_join(companydata, pop_denom, by = 'variable')
+
+companydata <- companydata %>% 
+  mutate('pct_of_pop' = round(estimate / pop_denom * 100, 2))
+
+companydata <- companydata %>% 
+  relocate(estimate, .before = pct_of_pop)
+  
+```
+
+re-bind the data
+```{r bind}
+
+censusdata <- censusdata %>% 
+  filter(geoid != 9999999)
+
+censusdata <- bind_rows(censusdata, companydata)
+
+```
+
+
+temp scratchpad
+```{r temp}
+
+# censusdata <- censusdata %>% 
+#   arrange(geoid, statistic_group, pop_group)
+# 
+# companydata <- companydata %>% 
+#   mutate(across('statistic', str_replace, 'Employess ', ''))
+# 
+# distinctco <- companydata %>% 
+#   distinct(statistic)
+# 
+# distinctcen <- censusdata %>% 
+#   distinct(statistic)
+```
+
